@@ -32,7 +32,12 @@
 
 	<!-- Smaller single-file executable -->
 	<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+	<ApplicationIcon>Assets\logo.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\logo.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Build\" />
