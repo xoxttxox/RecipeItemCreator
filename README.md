@@ -8,8 +8,6 @@ It is designed primarily for game-server and modding workflows such as FiveM, wh
 
 ![Recipe Item Creator Preview](Assets/preview.png)
 
-> Place your current application screenshot at `Assets/preview.png` so GitHub displays it automatically.
-
 ## Features
 
 - Create recipe-item images from a reusable template
