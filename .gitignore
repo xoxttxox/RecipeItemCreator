@@ -1,0 +1,95 @@
+# Build-Ergebnisse
+bin/
+obj/
+out/
+publish/
+artifacts/
+
+# Visual Studio
+.vs/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains Rider / ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# .NET
+*.dll
+*.exe
+*.pdb
+*.deps.json
+*.runtimeconfig.json
+*.runtimeconfig.dev.json
+*.cache
+*.nupkg
+*.snupkg
+
+# NuGet
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Test-Ergebnisse
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.*
+
+# Publish / Installer
+*.msi
+*.msix
+*.appx
+*.appxbundle
+*.zip
+
+# Logs
+*.log
+logs/
+
+# Temporäre Dateien
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.swp
+*.swo
+*~
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+
+# Lokale Einstellungen / Secrets
+.env
+.env.*
+!.env.example
+appsettings.Local.json
+appsettings.Development.local.json
+
+# Zertifikate und Signierung
+*.pfx
+*.p12
+*.cer
+*.key
+*.pem
+
+# Lokale generierte Exportdateien
+exports/
+generated/
