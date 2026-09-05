@@ -21,7 +21,8 @@ internal static class AppInfo
         }
     }
 
-    public static string VersionText => $"Version {DisplayVersion}";
+    public static string VersionText =>
+        $"Version {DisplayVersion}";
 
     public static string ProductName =>
         Assembly.GetCustomAttribute<AssemblyProductAttribute>()?.Product

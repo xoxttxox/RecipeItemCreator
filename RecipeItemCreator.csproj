@@ -3,12 +3,35 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <UseWindowsForms>true</UseWindowsForms>
-    <ImplicitUsings>enable</ImplicitUsings>
+	<UseWindowsForms>true</UseWindowsForms>
+	  
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+
+	<!-- Application -->
+	<AssemblyName>RecipeItemCreator</AssemblyName>
+	<Product>Recipe Item Creator</Product>
 	<Version>1.0.0</Version>
 	<AssemblyVersion>1.0.0.0</AssemblyVersion>
 	<FileVersion>1.0.0.0</FileVersion>
+
+	<!-- Single EXE -->
+	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	<SelfContained>true</SelfContained>
+	<PublishSingleFile>true</PublishSingleFile>
+
+	<!-- Required for native libraries such as SkiaSharp -->
+	<IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+	<!-- Keep WinForms / SkiaSharp safe -->
+	<PublishTrimmed>false</PublishTrimmed>
+
+	<!-- Release output -->
+	<DebugType>none</DebugType>
+	<DebugSymbols>false</DebugSymbols>
+
+	<!-- Smaller single-file executable -->
+	<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
   <ItemGroup>

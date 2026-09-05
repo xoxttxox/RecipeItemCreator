@@ -14,9 +14,9 @@ internal static class ImageComposer
     // Recipe template layout
     // ---------------------------------------------------------------------
 
-    // Normalisierter innerer Papierbereich der Rezeptvorlage.
+    // Normalized inner paper area of the recipe template.
     //
-    // Ausgangsbasis: 128x128 Template.
+    // Reference size: 128x128 template.
     private const float PaperX = 20f / 128f;
     private const float PaperY = 32f / 128f;
     private const float PaperW = 88f / 128f;
@@ -24,18 +24,18 @@ internal static class ImageComposer
 
     private const float DefaultDpi = 96f;
 
-    // Verhindert versehentlich extrem große Ausgabebilder.
+    // Prevents accidentally creating extremely large output images.
     private const int MaxOutputSize = 4096;
 
-    // Alpha <= diesem Wert gilt beim Zuschneiden als transparent.
+    // Alpha values <= this threshold are treated as transparent when trimming.
     private const byte AlphaThreshold = 5;
 
-    // Standardmäßig belegt ein Item maximal 72 % des Papierbereichs.
+    // By default, an item occupies at most 72% of the paper area.
     private const float DefaultItemAreaFactor = 0.72f;
 
-    // Sichtbare Bildbereiche werden pro Bitmap nur einmal berechnet.
+    // Visible image bounds are calculated only once per bitmap.
     //
-    // ConditionalWeakTable hält die Bitmap nicht künstlich am Leben.
+    // ConditionalWeakTable does not keep the bitmap alive artificially.
     private static readonly ConditionalWeakTable<Bitmap, VisibleBoundsCacheEntry>
         VisibleBoundsCache = [];
 
@@ -44,28 +44,28 @@ internal static class ImageComposer
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Lädt PNG, JPG/JPEG, WebP und weitere von SkiaSharp unterstützte
-    /// Bildformate.
+    /// Loads PNG, JPG/JPEG, WebP, and other image formats supported by SkiaSharp.
+
     ///
-    /// Die zurückgegebene Bitmap ist vollständig unabhängig von der
-    /// Quelldatei und besitzt keinen offenen File-/Stream-Lock.
+    /// The returned bitmap is completely independent of the source file
+    /// and does not keep any file or stream lock open.
     ///
     /// Ownership:
-    /// Der Aufrufer muss die zurückgegebene Bitmap Dispose()n.
+    /// The caller must dispose the returned bitmap.
     /// </summary>
     public static Bitmap LoadUnlocked(string fileName)
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
             throw new ArgumentException(
-                "Es wurde keine Bilddatei angegeben.",
+                "No image file was specified.",
                 nameof(fileName));
         }
 
         if (!File.Exists(fileName))
         {
             throw new FileNotFoundException(
-                "Die Bilddatei wurde nicht gefunden.",
+                "The image file was not found.",
                 fileName);
         }
 
@@ -79,14 +79,14 @@ internal static class ImageComposer
 
             using SKBitmap? skBitmap =
                 SKBitmap.Decode(fileStream) ?? throw new InvalidDataException(
-                    "Das Bild konnte nicht geladen oder dekodiert werden. " +
-                    "Die Datei ist möglicherweise beschädigt oder das " +
-                    "Bildformat wird nicht unterstützt.");
+                    "The image could not be loaded or decoded. " +
+                    "The file may be corrupted or the " +
+                    "image format may not be supported.");
             if (skBitmap.Width <= 0 ||
                 skBitmap.Height <= 0)
             {
                 throw new InvalidDataException(
-                    "Das geladene Bild besitzt ungültige Abmessungen.");
+                    "The loaded image has invalid dimensions.");
             }
 
             using SKImage skImage =
@@ -96,7 +96,7 @@ internal static class ImageComposer
                 skImage.Encode(
                     SKEncodedImageFormat.Png,
                     100) ?? throw new InvalidDataException(
-                    "Das geladene Bild konnte nicht verarbeitet werden.");
+                    "The loaded image could not be processed.");
             using MemoryStream pngStream = new();
 
             pngData.SaveTo(pngStream);
@@ -109,8 +109,8 @@ internal static class ImageComposer
                     useEmbeddedColorManagement: true,
                     validateImageData: true);
 
-            // Image.FromStream hält intern eine Verbindung zum Stream.
-            // Deshalb wird eine vollständig unabhängige ARGB-Bitmap erzeugt.
+            // Image.FromStream internally keeps a connection to the stream.
+            // Therefore, a completely independent ARGB bitmap is created.
             return CloneToArgb(temporaryImage);
         }
         catch (InvalidDataException)
@@ -132,7 +132,7 @@ internal static class ImageComposer
         catch (Exception ex)
         {
             throw new InvalidDataException(
-                "Das Bild konnte nicht geladen oder dekodiert werden.",
+                "The image could not be loaded or decoded.",
                 ex);
         }
     }
@@ -207,11 +207,11 @@ internal static class ImageComposer
     // ---------------------------------------------------------------------
 
     /// <summary>
-    /// Entfernt die gespeicherten sichtbaren Grenzen einer Bitmap.
+    /// Removes the cached visible bounds of a bitmap.
     ///
-    /// Normalerweise nicht notwendig.
-    /// Nur aufrufen, wenn der Inhalt derselben Bitmap-Instanz nachträglich
-    /// verändert wurde.
+    /// Normally not required.
+    /// Call this only if the contents of the same bitmap instance were modified
+    /// after the bounds had already been calculated.
     /// </summary>
     public static void InvalidateVisibleBounds(Bitmap image)
     {
@@ -282,13 +282,13 @@ internal static class ImageComposer
                     outputSize);
             }
 
-            // Ownership geht an den Aufrufer.
+            // Ownership is transferred to the caller.
             return canvas;
         }
         catch
         {
-            // Canvas wurde noch nicht zurückgegeben und gehört daher
-            // weiterhin dieser Methode.
+            // The canvas has not been returned yet and therefore
+            // is still owned by this method.
             canvas.Dispose();
 
             throw;
@@ -358,7 +358,7 @@ internal static class ImageComposer
         Rectangle visibleBounds =
             GetVisibleBounds(item);
 
-        // Bild ist vollständig transparent.
+        // The image is completely transparent.
         if (visibleBounds.IsEmpty)
             return;
 
@@ -401,7 +401,7 @@ internal static class ImageComposer
                 1f,
                 visibleBounds.Height * scale);
 
-        // Standard: exakt mittig im Papierbereich.
+        // Default: exactly centered within the paper area.
         float x =
             paper.Left +
             (paper.Width - width) / 2f;
@@ -410,7 +410,7 @@ internal static class ImageComposer
             paper.Top +
             (paper.Height - height) / 2f;
 
-        // Benutzerdefinierte Verschiebung relativ zum Papierbereich.
+        // User-defined offset relative to the paper area.
         x +=
             paper.Width * placement.OffsetX;
 
@@ -428,8 +428,8 @@ internal static class ImageComposer
 
         try
         {
-            // Das Item darf nicht außerhalb des eigentlichen
-            // Rezept-Papierbereichs gezeichnet werden.
+            // The item must not be drawn outside the actual
+            // recipe paper area.
             graphics.SetClip(
                 paper,
                 CombineMode.Intersect);
@@ -568,7 +568,7 @@ internal static class ImageComposer
         // ------------------------------------------------------------
 
         const string titleText =
-            "Item-Bild auswählen";
+            "Select item image";
 
         const string subtitleText =
             "PNG · JPG · WebP";
@@ -946,7 +946,7 @@ internal static class ImageComposer
                          x < source.Width;
                          x++)
                     {
-                        // Format32bppArgb liegt im Speicher als BGRA.
+                        // Format32bppArgb is stored in memory as BGRA.
                         int pixelOffset =
                             x * bytesPerPixel;
 
@@ -1010,7 +1010,7 @@ internal static class ImageComposer
             source.Height <= 0)
         {
             throw new ArgumentException(
-                "Das Quellbild besitzt ungültige Abmessungen.",
+                "The source image has invalid dimensions.",
                 nameof(source));
         }
 
@@ -1100,7 +1100,7 @@ internal static class ImageComposer
             bitmap.Height <= 0)
         {
             throw new ArgumentException(
-                "Das Bild besitzt ungültige Abmessungen.",
+                "The image has invalid dimensions.",
                 parameterName);
         }
     }
@@ -1113,7 +1113,7 @@ internal static class ImageComposer
             throw new ArgumentOutOfRangeException(
                 nameof(outputSize),
                 outputSize,
-                "Die Ausgabegröße muss größer als 0 Pixel sein.");
+                "The output size must be greater than 0 pixels.");
         }
 
         if (outputSize > MaxOutputSize)
@@ -1121,7 +1121,7 @@ internal static class ImageComposer
             throw new ArgumentOutOfRangeException(
                 nameof(outputSize),
                 outputSize,
-                $"Die Ausgabegröße darf {MaxOutputSize}px nicht überschreiten.");
+                $"The output size must not exceed {MaxOutputSize}px.");
         }
     }
 
@@ -1137,7 +1137,7 @@ internal static class ImageComposer
 }
 
 /// <summary>
-/// Größe und Position des Item-Bildes innerhalb des Rezeptes.
+/// Size and position of the item image within the recipe.
 /// </summary>
 internal readonly record struct ItemPlacement(
     float Scale,

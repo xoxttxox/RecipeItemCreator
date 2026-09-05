@@ -13,11 +13,11 @@ public partial class MainForm : Form
     private Bitmap? _template;
     private Bitmap? _item;
 
-    // 0 = aktiv
-    // 1 = eigener Ressourcen-Cleanup wurde bereits ausgeführt
+    // 0 = active
+    // 1 = owned-resource cleanup has already been performed
     private int _cleanupState;
 
-    // Wird gesetzt, sobald das Fenster wirklich geschlossen wird.
+    // Set once the window is actually closing.
     private bool _isClosing;
 
     private bool _updateCheckStarted;
@@ -29,14 +29,14 @@ public partial class MainForm : Form
     private const int PreviewRenderSize = 512;
 
     /// <summary>
-    /// Liefert das aktuell verwendete Template.
-    /// Nach Dispose() ist ein Zugriff absichtlich nicht mehr erlaubt.
+    /// Returns the currently used template.
+    /// Access is intentionally no longer allowed after Dispose().
     /// </summary>
     private Bitmap Template =>
         _template ?? throw new ObjectDisposedException(nameof(MainForm));
 
     /// <summary>
-    /// Verhindert UI- und Rendering-Zugriffe während bzw. nach dem Schließen.
+    /// Prevents UI and rendering access while or after the form is closing.
     /// </summary>
     private bool IsShuttingDown =>
         _isClosing ||
@@ -48,9 +48,9 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
-        // Eigene Bitmap-Kopie der VS-Ressource.
-        // Dadurch gehört die Instanz ausschließlich MainForm
-        // und darf später sicher disposed werden.
+        // Create an independent bitmap copy of the Visual Studio resource.
+        // This makes the instance exclusively owned by MainForm
+        // so it can be disposed safely later.
         _template = new Bitmap(Properties.Resources.Template);
 
         ConfigureOutputSizes();
@@ -58,8 +58,8 @@ public partial class MainForm : Form
         versionStatusLabel.Text = $"v{AppInfo.DisplayVersion}";
 
         githubStatusLabel.Text = AppSettings.GitHubUpdatesConfigured
-            ? "Update: wird geprüft..."
-            : "Update: nicht eingerichtet";
+            ? "Update: checking..."
+            : "Update: not configured";
 
         RefreshPreview();
     }
@@ -90,8 +90,8 @@ public partial class MainForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        // Zuerst normale WinForms-Events ausführen.
-        // Dadurch können andere Handler das Schließen noch abbrechen.
+        // Run the normal WinForms events first.
+        // This allows other handlers to cancel closing if necessary.
         base.OnFormClosing(e);
 
         if (!e.Cancel)
@@ -121,7 +121,7 @@ public partial class MainForm : Form
         }
         catch (ObjectDisposedException)
         {
-            // Beim finalen Schließen kann die Quelle bereits freigegeben sein.
+            // During final shutdown, the source may already have been disposed.
         }
     }
 
@@ -145,10 +145,10 @@ public partial class MainForm : Form
     {
         Image? preview = previewPictureBox.Image;
 
-        // Erst vom Control trennen.
+        // Detach it from the control first.
         previewPictureBox.Image = null;
 
-        // Danach Bitmap freigeben.
+        // Dispose the bitmap afterwards.
         preview?.Dispose();
     }
 
@@ -163,13 +163,13 @@ public partial class MainForm : Form
 
         using var dialog = new OpenFileDialog
         {
-            Title = "Item-Bild auswählen",
+            Title = "Select item image",
 
             Filter =
-                "Bilder (*.png;*.webp;*.jpg;*.jpeg)|*.png;*.webp;*.jpg;*.jpeg|" +
-                "PNG-Bilder (*.png)|*.png|" +
-                "WebP-Bilder (*.webp)|*.webp|" +
-                "JPEG-Bilder (*.jpg;*.jpeg)|*.jpg;*.jpeg",
+                "Images (*.png;*.webp;*.jpg;*.jpeg)|*.png;*.webp;*.jpg;*.jpeg|" +
+                "PNG Images (*.png)|*.png|" +
+                "WebP Images (*.webp)|*.webp|" +
+                "JPEG Images (*.jpg;*.jpeg)|*.jpg;*.jpeg",
 
             CheckFileExists = true,
             Multiselect = false
@@ -188,8 +188,8 @@ public partial class MainForm : Form
 
         using var dialog = new OpenFileDialog
         {
-            Title = "Rezeptvorlage auswählen",
-            Filter = "PNG-Bilder (*.png)|*.png",
+            Title = "Select recipe template",
+            Filter = "PNG Images (*.png)|*.png",
             CheckFileExists = true,
             Multiselect = false
         };
@@ -217,8 +217,8 @@ public partial class MainForm : Form
         if (IsShuttingDown)
             return;
 
-        // Item-ID verändert das Bild nicht.
-        // Deshalb kein unnötiges RefreshPreview().
+        // Changing the item ID does not affect the image.
+        // Therefore, no unnecessary RefreshPreview() call is needed.
         UpdatePreviewStatus();
     }
 
@@ -229,8 +229,8 @@ public partial class MainForm : Form
         if (IsShuttingDown)
             return;
 
-        // Die sichtbare Vorschau bleibt 512x512.
-        // Nur das tatsächliche Exportbild verwendet diese Größe.
+        // The visible preview remains 512x512.
+        // Only the actual exported image uses this size.
         UpdatePreviewStatus();
     }
 
@@ -252,7 +252,7 @@ public partial class MainForm : Form
         catch (Exception ex)
         {
             ShowError(
-                "Das Item-Bild konnte nicht geladen werden.",
+                "The item image could not be loaded.",
                 ex);
 
             return;
@@ -264,12 +264,12 @@ public partial class MainForm : Form
             return;
         }
 
-        // Neue Instanz zuerst übernehmen.
+        // Store the new instance first.
         Bitmap? previous = Interlocked.Exchange(
             ref _item,
             loaded);
 
-        // Alte danach sicher freigeben.
+        // Safely dispose the previous instance afterwards.
         previous?.Dispose();
 
         itemPathTextBox.Text = fileName;
@@ -290,7 +290,7 @@ public partial class MainForm : Form
         }
 
         SetStatus(
-            $"Geladen: {loaded.Width} x {loaded.Height}px");
+            $"Loaded: {loaded.Width} x {loaded.Height}px");
 
         RefreshPreview();
     }
@@ -313,7 +313,7 @@ public partial class MainForm : Form
         catch (Exception ex)
         {
             ShowError(
-                "Die Rezeptvorlage konnte nicht geladen werden.",
+                "The recipe template could not be loaded.",
                 ex);
 
             return;
@@ -333,7 +333,7 @@ public partial class MainForm : Form
 
         templatePathTextBox.Text = fileName;
 
-        SetStatus("Eigene Rezeptvorlage geladen.");
+        SetStatus("Custom recipe template loaded.");
 
         RefreshPreview();
     }
@@ -428,10 +428,10 @@ public partial class MainForm : Form
 
         try
         {
-            // Neue Preview zuerst komplett rendern.
+            // Render the new preview completely first.
             //
-            // Scheitert das Rendering, bleibt die bisherige
-            // Preview unverändert erhalten.
+            // If rendering fails, the existing
+            // preview remains unchanged.
             nextPreview =
                 ImageComposer.ComposePreview(
                     Template,
@@ -444,13 +444,13 @@ public partial class MainForm : Form
             Image? previousPreview =
                 previewPictureBox.Image;
 
-            // Erst neues Bild übernehmen.
+            // Assign the new image first.
             previewPictureBox.Image = nextPreview;
 
-            // Ownership wurde jetzt an MainForm/PictureBox übertragen.
+            // Ownership has now been transferred to MainForm/PictureBox.
             nextPreview = null;
 
-            // Danach alte Preview freigeben.
+            // Dispose the previous preview afterwards.
             previousPreview?.Dispose();
 
             UpdatePreviewStatus();
@@ -458,23 +458,23 @@ public partial class MainForm : Form
         catch (ObjectDisposedException)
             when (IsShuttingDown)
         {
-            // Beim Beenden bewusst ignorieren.
+            // Intentionally ignore this while shutting down.
         }
         catch (Exception ex)
         {
             if (IsShuttingDown)
                 return;
 
-            SetStatus("Vorschau fehlgeschlagen.");
+            SetStatus("Preview failed.");
 
             ShowError(
-                "Die Vorschau konnte nicht erstellt werden.",
+                "The preview could not be generated.",
                 ex);
         }
         finally
         {
-            // Falls die Bitmap noch nicht ans PictureBox übergeben
-            // wurde, gehört sie weiterhin dieser Methode.
+            // If the bitmap has not yet been assigned to the PictureBox,
+            // it is still owned by this method.
             nextPreview?.Dispose();
         }
     }
@@ -492,13 +492,13 @@ public partial class MainForm : Form
             SetStatus(
                 $"Template ready · " +
                 $"Output {exportSize} x {exportSize}px · " +
-                "bitte Item-Bild auswählen");
+                "please select an item image");
 
             return;
         }
 
         SetStatus(
-            $"Vorschau bereit · " +
+            $"Preview ready · " +
             $"Output {exportSize} x {exportSize}px");
     }
 
@@ -517,8 +517,8 @@ public partial class MainForm : Form
         {
             MessageBox.Show(
                 this,
-                "Bitte zuerst ein Item-Bild auswählen.",
-                "Hinweis",
+                "Please select an item image first.",
+                "Notice",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
 
@@ -532,15 +532,15 @@ public partial class MainForm : Form
         {
             MessageBox.Show(
                 this,
-                "Bitte eine Item-ID eingeben, z. B. sushi_recipe.",
-                "Hinweis",
+                "Please enter an item ID, e.g. sushi_recipe.",
+                "Notice",
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
 
             return;
         }
 
-        // Normalisierte ID zurück ins Textfeld schreiben.
+        // Write the normalized ID back to the text box.
         if (!string.Equals(
                 itemIdTextBox.Text,
                 id,
@@ -551,8 +551,8 @@ public partial class MainForm : Form
 
         using var dialog = new SaveFileDialog
         {
-            Title = "Rezept-PNG speichern",
-            Filter = "PNG-Bild (*.png)|*.png",
+            Title = "Save recipe PNG",
+            Filter = "PNG Image (*.png)|*.png",
             FileName = id + ".png",
             AddExtension = true,
             DefaultExt = "png",
@@ -570,9 +570,9 @@ public partial class MainForm : Form
             int exportSize =
                 SelectedOutputSize();
 
-            // Exportbild wird ausschließlich hier erzeugt.
+            // The export image is created only here.
             //
-            // Es gibt daher kein dauerhaftes _result-Feld mehr.
+            // Therefore, no persistent _result field is required.
             using Bitmap result =
                 ImageComposer.Compose(
                     Template,
@@ -584,13 +584,13 @@ public partial class MainForm : Form
                 System.Drawing.Imaging.ImageFormat.Png);
 
             SetStatus(
-                $"Gespeichert: {Path.GetFileName(dialog.FileName)} · " +
+                $"Saved: {Path.GetFileName(dialog.FileName)} · " +
                 $"{exportSize} x {exportSize}px");
         }
         catch (ObjectDisposedException)
             when (IsShuttingDown)
         {
-            // Programm wird gerade beendet.
+            // The application is currently shutting down.
         }
         catch (Exception ex)
         {
@@ -598,7 +598,7 @@ public partial class MainForm : Form
                 return;
 
             ShowError(
-                "Die PNG-Datei konnte nicht gespeichert werden.",
+                "The PNG file could not be saved.",
                 ex);
         }
     }
@@ -635,7 +635,7 @@ public partial class MainForm : Form
 
             githubStatusLabel.IsLink = false;
             githubStatusLabel.Text =
-                "GitHub: Prüfung fehlgeschlagen";
+                "GitHub: check failed";
 
             githubStatusLabel.ToolTipText =
                 ex.Message;
@@ -646,8 +646,8 @@ public partial class MainForm : Form
             return;
         }
 
-        // Entscheidend:
-        // Während des await könnte das Fenster geschlossen worden sein.
+        // Important:
+        // The form may have been closed while awaiting the request.
         if (IsShuttingDown)
             return;
 
@@ -662,30 +662,30 @@ public partial class MainForm : Form
         {
             case GitHubUpdateState.NotConfigured:
                 githubStatusLabel.Text =
-                    "GitHub: nicht eingerichtet";
+                    "GitHub: not configured";
 
                 githubStatusLabel.ToolTipText =
-                    "GitHubRepositoryUrl eintragen in " +
+                    "Set GitHubRepositoryUrl in " +
                     "Configuration/AppSettings.cs.";
 
                 break;
 
             case GitHubUpdateState.UpToDate:
                 githubStatusLabel.Text =
-                    "GitHub: aktuell";
+                    "GitHub: up to date";
 
                 githubStatusLabel.ToolTipText =
                     string.IsNullOrWhiteSpace(result.Tag)
-                        ? "Keine neuere Release-Version gefunden."
-                        : $"Neuestes Release: {result.Tag}";
+                        ? "No newer release version was found."
+                        : $"Latest release: {result.Tag}";
 
                 break;
 
             case GitHubUpdateState.UpdateAvailable:
                 githubStatusLabel.Text =
                     string.IsNullOrWhiteSpace(result.Tag)
-                        ? "Update verfügbar"
-                        : $"Update verfügbar: {result.Tag}";
+                        ? "Update available"
+                        : $"Update available: {result.Tag}";
 
                 githubStatusLabel.IsLink =
                     !string.IsNullOrWhiteSpace(
@@ -693,8 +693,8 @@ public partial class MainForm : Form
 
                 githubStatusLabel.ToolTipText =
                     githubStatusLabel.IsLink
-                        ? "Klicken, um das GitHub-Release zu öffnen."
-                        : "Eine neuere Version ist verfügbar.";
+                        ? "Click to open the GitHub release."
+                        : "A newer version is available.";
 
                 _latestReleaseUrl =
                     result.ReleaseUrl ?? string.Empty;
@@ -703,19 +703,19 @@ public partial class MainForm : Form
 
             case GitHubUpdateState.Failed:
                 githubStatusLabel.Text =
-                    "GitHub: Prüfung fehlgeschlagen";
+                    "GitHub: check failed";
 
                 githubStatusLabel.ToolTipText =
                     string.IsNullOrWhiteSpace(
                         result.ErrorMessage)
-                        ? "Die Update-Prüfung ist fehlgeschlagen."
+                        ? "The update check failed."
                         : result.ErrorMessage;
 
                 break;
 
             default:
                 githubStatusLabel.Text =
-                    "GitHub: unbekannter Status";
+                    "GitHub: unknown state";
 
                 githubStatusLabel.ToolTipText =
                     string.Empty;
@@ -744,7 +744,7 @@ public partial class MainForm : Form
             _latestReleaseUrl,
             out Uri? releaseUri) || releaseUri is null)
         {
-            SetStatus("Ungültige GitHub-Release-URL.");
+            SetStatus("Invalid GitHub release URL.");
             return;
         }
 
@@ -763,7 +763,7 @@ public partial class MainForm : Form
                 System.ComponentModel.Win32Exception)
         {
             SetStatus(
-                "GitHub-Release konnte nicht geöffnet werden.");
+                "The GitHub release could not be opened.");
         }
     }
 
@@ -831,7 +831,7 @@ public partial class MainForm : Form
         MessageBox.Show(
             this,
             message + "\n\n" + ex.Message,
-            "Fehler",
+            "Error",
             MessageBoxButtons.OK,
             MessageBoxIcon.Error);
     }
@@ -842,8 +842,8 @@ public partial class MainForm : Form
         if (string.IsNullOrWhiteSpace(value))
             return string.Empty;
 
-        // Deutsche Sonderzeichen möglichst sinnvoll
-        // auf Item-ID-kompatible Zeichen reduzieren.
+        // Convert German special characters where practical
+        // to item-ID-compatible characters.
         string input = value
             .Trim()
             .ToLowerInvariant()
@@ -865,7 +865,7 @@ public partial class MainForm : Form
                 CharUnicodeInfo.GetUnicodeCategory(
                     rawChar);
 
-            // Diakritische Zeichen entfernen:
+            // Remove diacritical marks:
             // ä -> a
             // ö -> o
             // ü -> u
@@ -919,7 +919,7 @@ public partial class MainForm : Form
                 "512 x 512"
             ]);
 
-            // Standard beim Programmstart
+            // Default selection at application startup
             outputSizeComboBox.SelectedIndex = 2;
         }
         finally

@@ -2,12 +2,13 @@
 
 internal static class AppSettings
 {
-    // Öffentliche GitHub-Repository-URL.
-    // Beispiel:
-    // https://github.com/DEIN-NAME/RecipeItemCreator
+    // Public GitHub repository URL.
+    // Example:
+    // https://github.com/YOUR-NAME/RecipeItemCreator
     //
-    // Solange die URL leer ist, bleibt die Update-Prüfung deaktiviert.
-    public const string GitHubRepositoryUrl = "https://github.com/xoxttxox/RecipeItemCreator";
+    // As long as the URL is empty, update checking remains disabled.
+    public const string GitHubRepositoryUrl =
+        "https://github.com/xoxttxox/RecipeItemCreator";
 
     public static bool GitHubUpdatesConfigured =>
         TryGetGitHubRepository(out _, out _);
