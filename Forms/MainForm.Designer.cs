@@ -2,10 +2,17 @@
 {
     partial class MainForm
     {
-        /// <summary>
-        ///  Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && components != null)
+            {
+                components.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
 
         #region Windows Form Designer generated code
 
@@ -137,7 +144,7 @@
             itemIdTextBox.Name = "itemIdTextBox";
             itemIdTextBox.PlaceholderText = "sushi_recipe";
             itemIdTextBox.Size = new Size(264, 27);
-            itemIdTextBox.TabIndex = 9;
+            itemIdTextBox.TabIndex = 1;
             // 
             // outputSizeComboBox
             // 

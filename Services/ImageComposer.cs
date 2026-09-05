@@ -37,7 +37,7 @@ internal static class ImageComposer
     //
     // ConditionalWeakTable hält die Bitmap nicht künstlich am Leben.
     private static readonly ConditionalWeakTable<Bitmap, VisibleBoundsCacheEntry>
-        VisibleBoundsCache = new();
+        VisibleBoundsCache = [];
 
     // ---------------------------------------------------------------------
     // Image loading
@@ -78,16 +78,10 @@ internal static class ImageComposer
                 FileShare.ReadWrite | FileShare.Delete);
 
             using SKBitmap? skBitmap =
-                SKBitmap.Decode(fileStream);
-
-            if (skBitmap is null)
-            {
-                throw new InvalidDataException(
+                SKBitmap.Decode(fileStream) ?? throw new InvalidDataException(
                     "Das Bild konnte nicht geladen oder dekodiert werden. " +
                     "Die Datei ist möglicherweise beschädigt oder das " +
                     "Bildformat wird nicht unterstützt.");
-            }
-
             if (skBitmap.Width <= 0 ||
                 skBitmap.Height <= 0)
             {
@@ -101,14 +95,8 @@ internal static class ImageComposer
             using SKData? pngData =
                 skImage.Encode(
                     SKEncodedImageFormat.Png,
-                    100);
-
-            if (pngData is null)
-            {
-                throw new InvalidDataException(
+                    100) ?? throw new InvalidDataException(
                     "Das geladene Bild konnte nicht verarbeitet werden.");
-            }
-
             using MemoryStream pngStream = new();
 
             pngData.SaveTo(pngStream);
@@ -473,63 +461,66 @@ internal static class ImageComposer
     // ---------------------------------------------------------------------
 
     private static void DrawPlaceholder(
-        Graphics graphics,
-        int outputSize)
+    Graphics graphics,
+    int outputSize)
     {
         RectangleF paper =
             GetPaperArea(outputSize);
 
         RectangleF box = new(
-            paper.Left + paper.Width * 0.13f,
-            paper.Top + paper.Height * 0.14f,
-            paper.Width * 0.74f,
-            paper.Height * 0.72f);
+            paper.Left + paper.Width * 0.12f,
+            paper.Top + paper.Height * 0.12f,
+            paper.Width * 0.76f,
+            paper.Height * 0.76f);
+
+        float borderWidth =
+            Math.Max(
+                1f,
+                outputSize / 300f);
+
+        float radius =
+            Math.Max(
+                6f,
+                outputSize * 0.018f);
 
         using SolidBrush fillBrush = new(
             Color.FromArgb(
-                36,
+                22,
                 255,
                 255,
                 255));
 
         using Pen borderPen = new(
             Color.FromArgb(
-                115,
-                92,
-                101,
-                112),
-            Math.Max(
-                1f,
-                outputSize / 256f))
+                90,
+                110,
+                110,
+                110),
+            borderWidth)
         {
             DashStyle = DashStyle.Dash
         };
 
-        using SolidBrush accentBrush = new(
+        using SolidBrush iconBrush = new(
             Color.FromArgb(
-                155,
-                92,
-                101,
-                112));
+                135,
+                115,
+                115,
+                115));
 
         using SolidBrush titleBrush = new(
             Color.FromArgb(
-                155,
-                46,
-                50,
-                56));
+                180,
+                70,
+                70,
+                70));
 
-        using SolidBrush bodyBrush = new(
+        using SolidBrush subtitleBrush = new(
             Color.FromArgb(
-                125,
-                78,
-                83,
-                90));
-
-        float radius =
-            Math.Max(
-                10f,
-                outputSize * 0.03f);
+                130,
+                95,
+                95,
+                95));
 
         using GraphicsPath path =
             CreateRoundedRect(
@@ -544,45 +535,85 @@ internal static class ImageComposer
             borderPen,
             path);
 
-        float iconSize =
-            box.Width * 0.23f;
+        // ------------------------------------------------------------
+        // Icon
+        // ------------------------------------------------------------
+
+        float iconWidth =
+            box.Width * 0.22f;
+
+        float iconHeight =
+            iconWidth * 0.78f;
 
         RectangleF iconRect = new(
             box.Left +
-            (box.Width - iconSize) / 2f,
+            (box.Width - iconWidth) / 2f,
 
             box.Top +
-            box.Height * 0.10f,
+            box.Height * 0.13f,
 
-            iconSize,
-
-            iconSize * 0.78f);
+            iconWidth,
+            iconHeight);
 
         DrawImageIcon(
             graphics,
-            accentBrush,
+            iconBrush,
             iconRect,
             Math.Max(
-                2f,
-                outputSize / 170f));
+                1.4f,
+                outputSize / 240f));
 
-        using Font titleFont = new(
-            "Segoe UI",
-            Math.Max(
-                10f,
-                outputSize / 23f),
-            FontStyle.Bold,
-            GraphicsUnit.Pixel);
+        // ------------------------------------------------------------
+        // Text
+        // ------------------------------------------------------------
 
-        using Font bodyFont = new(
-            "Segoe UI",
-            Math.Max(
-                8f,
-                outputSize / 34f),
-            FontStyle.Regular,
-            GraphicsUnit.Pixel);
+        const string titleText =
+            "Item-Bild auswählen";
 
-        using StringFormat stringFormat = new()
+        const string subtitleText =
+            "PNG · JPG · WebP";
+
+        RectangleF titleRect = new(
+            box.Left + box.Width * 0.06f,
+            box.Top + box.Height * 0.50f,
+            box.Width * 0.88f,
+            box.Height * 0.18f);
+
+        RectangleF subtitleRect = new(
+            box.Left + box.Width * 0.06f,
+            box.Top + box.Height * 0.68f,
+            box.Width * 0.88f,
+            box.Height * 0.13f);
+
+        using Font titleFont =
+            CreateFittingFont(
+                graphics,
+                titleText,
+                "Segoe UI",
+                FontStyle.Bold,
+                Math.Max(
+                    10f,
+                    outputSize / 29f),
+                Math.Max(
+                    7f,
+                    outputSize / 48f),
+                titleRect.Width);
+
+        using Font subtitleFont =
+            CreateFittingFont(
+                graphics,
+                subtitleText,
+                "Segoe UI",
+                FontStyle.Regular,
+                Math.Max(
+                    8f,
+                    outputSize / 39f),
+                Math.Max(
+                    6f,
+                    outputSize / 58f),
+                subtitleRect.Width);
+
+        using StringFormat textFormat = new()
         {
             Alignment =
                 StringAlignment.Center,
@@ -591,34 +622,80 @@ internal static class ImageComposer
                 StringAlignment.Center,
 
             Trimming =
-                StringTrimming.EllipsisCharacter
+                StringTrimming.None,
+
+            FormatFlags =
+                StringFormatFlags.NoWrap
         };
 
-        RectangleF titleRect = new(
-            box.Left + box.Width * 0.08f,
-            box.Top + box.Height * 0.44f,
-            box.Width * 0.84f,
-            box.Height * 0.16f);
-
-        RectangleF bodyRect = new(
-            box.Left + box.Width * 0.08f,
-            box.Top + box.Height * 0.58f,
-            box.Width * 0.84f,
-            box.Height * 0.18f);
-
         graphics.DrawString(
-            "Item-Bild auswählen",
+            titleText,
             titleFont,
             titleBrush,
             titleRect,
-            stringFormat);
+            textFormat);
 
         graphics.DrawString(
-            "PNG, JPG oder WebP",
-            bodyFont,
-            bodyBrush,
-            bodyRect,
-            stringFormat);
+            subtitleText,
+            subtitleFont,
+            subtitleBrush,
+            subtitleRect,
+            textFormat);
+    }
+
+    private static Font CreateFittingFont(
+        Graphics graphics,
+        string text,
+        string fontFamily,
+        FontStyle style,
+        float preferredSize,
+        float minimumSize,
+        float maximumWidth)
+    {
+        ArgumentNullException.ThrowIfNull(graphics);
+
+        float safeMinimumSize =
+            Math.Max(
+                1f,
+                minimumSize);
+
+        float size =
+            Math.Max(
+                preferredSize,
+                safeMinimumSize);
+
+        while (size > safeMinimumSize)
+        {
+            using Font testFont = new(
+                fontFamily,
+                size,
+                style,
+                GraphicsUnit.Pixel);
+
+            SizeF measured =
+                graphics.MeasureString(
+                    text,
+                    testFont,
+                    int.MaxValue,
+                    StringFormat.GenericTypographic);
+
+            if (measured.Width <= maximumWidth)
+            {
+                return new Font(
+                    fontFamily,
+                    size,
+                    style,
+                    GraphicsUnit.Pixel);
+            }
+
+            size -= 0.5f;
+        }
+
+        return new Font(
+            fontFamily,
+            safeMinimumSize,
+            style,
+            GraphicsUnit.Pixel);
     }
 
     private static void DrawImageIcon(
@@ -1052,15 +1129,10 @@ internal static class ImageComposer
     // Cache entry
     // ---------------------------------------------------------------------
 
-    private sealed class VisibleBoundsCacheEntry
+    private sealed class VisibleBoundsCacheEntry(
+        Rectangle bounds)
     {
-        public VisibleBoundsCacheEntry(
-            Rectangle bounds)
-        {
-            Bounds = bounds;
-        }
-
-        public Rectangle Bounds { get; }
+        public Rectangle Bounds { get; } = bounds;
     }
 }
 
