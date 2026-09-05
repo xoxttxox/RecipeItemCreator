@@ -1,63 +1,190 @@
 # Recipe Item Creator
 
-Ein kleines Windows-Tool zum Erstellen und Vorbereiten von Rezept-Item-Bildern, z. B. für FiveM-Projekte.
+A lightweight Windows desktop tool for creating recipe-item images from a reusable template.
 
-## Funktionen
+It is designed primarily for game-server and modding workflows such as FiveM, where recipe or crafting items need a consistent visual style.
 
-- Rezept-Item-Bilder aus einer Vorlage erzeugen
-- PNG, JPG/JPEG und WebP laden
-- Transparente Bildbereiche automatisch erkennen
-- Item-Bild skalieren und positionieren
-- Vorschau vor dem Export
-- Saubere Bildverarbeitung ohne dauerhaften Dateilock
-- Dunkle Windows-Titelleiste
-- Versionsanzeige innerhalb der Anwendung
-- GitHub-Update-Prüfung über das neueste Release
+## Preview
 
-## Voraussetzungen
+![Recipe Item Creator Preview](Assets/preview.png)
 
-- Windows 10 oder Windows 11
-- .NET Runtime passend zur verwendeten Projektversion
+> Place your current application screenshot at `Assets/preview.png` so GitHub displays it automatically.
 
-Für die Entwicklung wird das passende .NET SDK benötigt.
+## Features
 
-## Projekt bauen
+- Create recipe-item images from a reusable template
+- Load PNG, JPG/JPEG, and WebP images
+- Automatically detect and trim transparent image areas
+- Scale and position item images inside the recipe area
+- Live preview before exporting
+- Export clean PNG files in multiple resolutions
+- Drag-and-drop support for item images
+- Custom recipe template support
+- Dark Windows title bar
+- Built-in application version display
+- GitHub release update check
+- No GitHub token required for public repositories
+- Portable single-file Windows build
+- No installer required
 
-Repository klonen und anschließend im Projektordner ausführen:
+## Download
+
+Prebuilt versions are available from the GitHub Releases page:
+
+https://github.com/xoxttxox/RecipeItemCreator/releases
+
+The recommended download is:
+
+```text
+RecipeItemCreator.exe
+```
+
+The standalone build contains everything required to run the application.
+
+No installer is required.
+
+## System Requirements
+
+### Prebuilt standalone release
+
+- Windows 10 or Windows 11
+- 64-bit Windows
+- No separate .NET installation required
+
+### Development
+
+- Windows
+- .NET 10 SDK
+- Visual Studio 2022 or newer, or another compatible .NET IDE
+
+## Usage
+
+1. Start `RecipeItemCreator.exe`.
+2. Enter or confirm the item ID.
+3. Select the desired output resolution.
+4. Choose an item image or drag it onto the preview area.
+5. Optionally select a custom recipe template.
+6. Check the preview.
+7. Click **Export PNG**.
+8. Choose the destination for the generated image.
+
+For item images, PNG files with transparent backgrounds are recommended.
+
+## Supported Image Formats
+
+The application uses SkiaSharp for image decoding.
+
+Supported formats include:
+
+- PNG
+- JPG
+- JPEG
+- WebP
+
+Other formats supported by SkiaSharp may also work, but the formats above are the intended input formats.
+
+## Output Sizes
+
+The application currently supports:
+
+```text
+128 x 128
+256 x 256
+512 x 512
+```
+
+The preview is rendered independently from the selected export resolution.
+
+## Building the Project
+
+Clone the repository and restore the dependencies:
 
 ```bash
+git clone https://github.com/xoxttxox/RecipeItemCreator.git
+cd RecipeItemCreator
 dotnet restore
+```
+
+Build the project:
+
+```bash
 dotnet build -c Release
 ```
 
-Optional kann eine veröffentlichbare Version erzeugt werden:
+## Publishing a Single EXE
+
+The project is intended to be distributed as a standalone Windows x64 executable.
+
+Recommended publish command:
 
 ```bash
-dotnet publish -c Release
+dotnet publish RecipeItemCreator.csproj -c Release -r win-x64 --self-contained true \
+  /p:PublishSingleFile=true \
+  /p:IncludeNativeLibrariesForSelfExtract=true \
+  /p:EnableCompressionInSingleFile=true \
+  /p:PublishReadyToRun=false \
+  /p:PublishTrimmed=false \
+  /p:DebugType=None \
+  /p:DebugSymbols=false \
+  -o publish
 ```
 
-## GitHub-Update-Prüfung
+On Windows, the included `publish.bat` can be used instead.
 
-Die Anwendung kann beim Start bzw. über die Benutzeroberfläche prüfen, ob auf GitHub eine neuere Version verfügbar ist.
+After publishing, the distributable application is:
 
-Die Repository-URL wird in:
+```text
+publish/
+└── RecipeItemCreator.exe
+```
+
+Only the EXE needs to be attached to the GitHub release.
+
+## GitHub Update Check
+
+Recipe Item Creator can check the latest published GitHub release and notify the user when a newer version is available.
+
+The repository URL is configured in:
 
 ```text
 Configuration/AppSettings.cs
 ```
 
-gesetzt:
+Example:
 
 ```csharp
 public const string GitHubRepositoryUrl =
-    "https://github.com/DEIN-NAME/RecipeItemCreator";
+    "https://github.com/xoxttxox/RecipeItemCreator";
 ```
 
-Für ein öffentliches Repository wird für die normale Release-Prüfung kein GitHub-Token benötigt.
+For a public GitHub repository, no authentication token is required for the standard release check.
 
-## Releases erstellen
+The application requests:
 
-Für Releases sollte Semantic Versioning verwendet werden:
+```text
+https://api.github.com/repos/xoxttxox/RecipeItemCreator/releases/latest
+```
+
+and compares the latest release tag with the current application version.
+
+## Versioning
+
+The project uses standard version numbers in the following format:
+
+```text
+Major.Minor.Patch
+```
+
+Examples:
+
+```text
+1.0.0
+1.0.1
+1.1.0
+2.0.0
+```
+
+GitHub release tags should use the `v` prefix:
 
 ```text
 v1.0.0
@@ -66,24 +193,9 @@ v1.1.0
 v2.0.0
 ```
 
-Die Anwendung entfernt beim Versionsvergleich automatisch ein führendes `v`.
+The application automatically handles the leading `v` when comparing versions.
 
-### Empfohlener Ablauf
-
-1. Versionsnummer im Projekt erhöhen.
-2. Projekt im `Release`-Modus bauen.
-3. Anwendung testen.
-4. Änderungen committen und zu GitHub pushen.
-5. Unter **GitHub → Releases → Draft a new release** ein neues Release erstellen.
-6. Einen Tag wie `v1.0.0` verwenden.
-7. Release-Dateien, ZIP oder Installer anhängen.
-8. Release veröffentlichen.
-
-Die Update-Prüfung verwendet das neueste veröffentlichte GitHub-Release.
-
-## Versionsnummer
-
-Eine typische Konfiguration in der `.csproj`:
+A typical project configuration is:
 
 ```xml
 <PropertyGroup>
@@ -93,58 +205,82 @@ Eine typische Konfiguration in der `.csproj`:
 </PropertyGroup>
 ```
 
-Für sichtbare Versionsnummern wird empfohlen:
+## Creating a Release
 
-```text
-Major.Minor.Build
-```
+Recommended release workflow:
 
-Beispiel:
+1. Update the project version.
+2. Build and test the application.
+3. Run the standalone publish script.
+4. Test the generated `RecipeItemCreator.exe`.
+5. Commit and push the changes.
+6. Open **GitHub → Releases → Draft a new release**.
+7. Create a tag such as `v1.0.0`.
+8. Use a release title such as `Recipe Item Creator v1.0.0`.
+9. Attach `RecipeItemCreator.exe`.
+10. Add release notes.
+11. Publish the release.
 
-```text
-1.0.0
-```
+The built-in update checker uses the latest published GitHub release.
 
-## Verzeichnisstruktur
-
-Beispiel:
+## Project Structure
 
 ```text
 RecipeItemCreator/
-├─ Configuration/
-│  └─ AppSettings.cs
-├─ Forms/
-├─ Services/
-│  ├─ AppInfo.cs
-│  ├─ GitHubUpdateService.cs
-│  ├─ ImageComposer.cs
-│  └─ WindowsTheme.cs
-├─ Properties/
-├─ Resources/
-├─ Program.cs
-└─ RecipeItemCreator.csproj
+├── Configuration/
+│   └── AppSettings.cs
+├── Controls/
+│   └── DarkTextBox.cs
+├── Forms/
+│   ├── MainForm.cs
+│   ├── MainForm.Designer.cs
+│   └── MainForm.resx
+├── Services/
+│   ├── AppInfo.cs
+│   ├── GitHubUpdateService.cs
+│   ├── ImageComposer.cs
+│   └── WindowsTheme.cs
+├── Properties/
+├── Resources/
+├── assets/
+│   └── preview.png
+├── Program.cs
+├── publish.bat
+└── RecipeItemCreator.csproj
 ```
 
-Die tatsächliche Struktur kann je nach Projektstand abweichen.
+The exact project structure may change as the application evolves.
 
-## Unterstützte Bildformate
+## Image Processing
 
-Über SkiaSharp können unter anderem folgende Formate verarbeitet werden:
+Recipe Item Creator performs several steps when generating an output image:
 
-- PNG
-- JPG / JPEG
-- WebP
+- Loads the source image without keeping the original file locked
+- Converts source images into an ARGB bitmap
+- Detects the visible non-transparent image bounds
+- Caches visible bounds for improved preview performance
+- Fits the item image into the recipe paper area
+- Prevents the item from drawing outside the intended recipe area
+- Renders the final image with high-quality interpolation
 
-Für Item-Bilder wird PNG mit transparentem Hintergrund empfohlen.
+## Security
 
-## Sicherheit
+Recipe Item Creator does not require GitHub credentials or access tokens for public release checks.
 
-Es werden keine GitHub-Zugangsdaten oder Tokens benötigt bzw. in der Anwendung gespeichert.
+Do not embed private GitHub tokens, passwords, or other secrets in the application executable.
 
-GitHub-Tokens sollten niemals fest in eine öffentlich verteilte EXE eingebaut werden.
+## License
 
-## Lizenz
+This project is licensed under the MIT License.
 
-Dieses Projekt steht unter der MIT-Lizenz.
+See [LICENSE](LICENSE) for details.
 
-Weitere Informationen befinden sich in der Datei [LICENSE](LICENSE).
+## Author
+
+Created and maintained by Pascal.
+
+## Disclaimer
+
+This project is provided as-is without warranty.
+
+FiveM and other referenced products or trademarks belong to their respective owners.
