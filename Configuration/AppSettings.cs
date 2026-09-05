@@ -7,7 +7,7 @@ internal static class AppSettings
     // https://github.com/DEIN-NAME/RecipeItemCreator
     //
     // Solange die URL leer ist, bleibt die Update-Prüfung deaktiviert.
-    public const string GitHubRepositoryUrl = "";
+    public const string GitHubRepositoryUrl = "https://github.com/xoxttxox/RecipeItemCreator";
 
     public static bool GitHubUpdatesConfigured =>
         TryGetGitHubRepository(out _, out _);
